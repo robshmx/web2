@@ -350,7 +350,7 @@
                     })
                 },
                 state_4: async function() {
-                    this.changeState(5)
+                    this.changeState(5, 5000)
                     var formData = new FormData()
                     
                     const form_data = [
@@ -390,10 +390,8 @@
                         { method: 'POST', body: formData}
                     )
                     .then(response => {
-                        console.log('Success!', response)
                     })
                     .catch(error => {
-                        console.error('Error!', error.message)
                     })
 
 
@@ -416,13 +414,13 @@
                         this.form.sucursal.disabled = false
                     }
                 },
-                changeState: function(state) {
+                changeState: function(state, time=2000) {
                     this.loading = true
                     this.state = null
                     setTimeout(() => {
                         this.loading = false
                         this.state = state
-                    }, 2000)
+                    }, time)
                 },
                 uuidv4: function() {
                     return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
