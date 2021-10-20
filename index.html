@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://unpkg.com/buefy/dist/buefy.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@5.8.55/css/materialdesignicons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;900&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div id="app" class="main">
+        <div v-if="loading && state == null" class="loading">
+            <img class="animate__animated animate__infinite animate__heartBeat" src="assets/img/logo.png" alt="Logo Electrolit">
+            <p>Cargando ...</p>
+        </div>
+        <div ref="main_container" class="container" v-if="state != null" style="display: none;">
+            <div class="columns is-multiline is-justify-content-center p-5 m-0">
+                <div class="column is-12 has-text-centered">
+                    <img src="assets/img/logo.png" alt="Logo Electrolit" width="300" v-on:click="reiniciar">
+                    <h1 class="title is-corogoose-bold my-4 titles-shadow has-text-white">¿CUÁNTOS ELECTROLIT HAY EN EL INTERIOR?</h1>
+                </div>
+
+                <!-- State 0 -->
+                <div v-if="state == 0" class="column is-12 has-text-centered">
+                    <div class="columns">
+                        <div class="column is-6 is-flex is-justify-content-end">
+                            <img class="price" src="assets/img/auto.png" alt="Premio" width="500">
+                        </div>
+                        <div class="column is-6 is-flex is-justify-content-start" style="margin: auto;">
+                            <img class="promo" src="assets/img/promo.png" alt="Premio">
+                        </div>
+                    </div>
+                    <p class="my-4">Registra tu ticket en el siguiente formulario y si eres de los participantes que más tickets registraron más oportunidades tendrás de calcular el número correcto de Electrolit</p>
+                    <p class="is-size-5">El participante con más tickets registrados que atine al número de botellas de Electrolit dentro del auto ganará.</p>
+                    <b-button class="general" tag="input" v-on:click="state_0" value="QUIERO PARTICIPAR"></b-button>
+                </div>
+                <!-- End: State 0 -->
+
+                <!-- State 1 -->
+                <div v-if="state == 1" class="column is-12 has-text-centered">
+                    <p class="has-text-white">Por favor, llene el formulario con sus datos.</p>
+                    <b-field :class="{ 'is-danger' : form.nombre_completo.danger }" :message="form.nombre_completo.message">
+                        <b-input v-model="form.nombre_completo.value" placeholder="NOMBRE COMPLETO"></b-input>
+                    </b-field>
+                    <b-field :class="{ 'is-danger' : form.correo_electronico.danger }" :message="form.correo_electronico.message">
+                        <b-input type="email" v-model="form.correo_electronico.value" placeholder="CORREO ELECTRÓNICO"></b-input>
+                    </b-field>
+                    <b-field :class="{ 'is-danger' : form.telefono.danger }" :message="form.telefono.message">
+                        <b-input  type="number" v-model="form.telefono.value" placeholder="TELÉFONO"></b-input>
+                    </b-field>
+                    <b-button class="general" tag="input" v-on:click="state_1" value="CONTINUAR"></b-button>
+                </div>
+                <!-- End: State 1 -->
+
+                <!-- State 2 -->
+                <div v-if="state == 2" class="column is-12 has-text-centered">
+                    <p class="has-text-white">Por favor, seleccione la opción donde compró sus Electrolits.</p>
+                    
+                    <div v-if="form.option==null" class="columns is-multiline my-5">
+                        <div class="column is-12 has-text-centered">
+                            <b-button class="general" tag="input" v-on:click="option(1)" value="TENGO EL TICKET" expanded></b-button>
+                        </div>
+                        <div class="column is-12 has-text-centered">
+                            <b-button class="general" tag="input" v-on:click="option(2)" value="COMPRÉ EN LÍNEA" expanded></b-button>
+                        </div>
+                        <div class="column is-12 has-text-centered">
+                            <b-button class="general" tag="input" v-on:click="option(3)" value="COMPRÉ POR CALL CENTER" expanded></b-button>
+                        </div>
+                    </div>
+
+                    <div v-if="form.option==1" class="columns is-multiline">
+                        <div class="column is-12">
+                            <b-field :class="{ 'is-danger' : form.ticket.danger }" :message="form.ticket.message">
+                                <b-upload v-model="form.ticket.value" expanded accept=".jpg">
+                                    <a class="button ticket is-fullwidth">
+                                    <b-icon icon="upload"></b-icon>
+                                    <span>{{ form.ticket.value.name || "TOMAR FOTO DEL TICKET"}}</span>
+                                    </a>
+                                </b-upload>
+                            </b-field>
+                        </div>
+                        <div class="column is-12">
+                            <b-field :class="{ 'is-danger' : form.numero_ticket.danger }" :message="form.numero_ticket.message">
+                                <b-input v-model="form.numero_ticket.value" :placeholder="form.numero_ticket.placeholder" :disabled="form.numero_ticket.disabled"></b-input>
+                            </b-field>
+                        </div>
+                        <div class="column is-12">
+                            <b-field :class="{ 'is-danger' : form.sucursal.danger }" :message="form.sucursal.message">
+                                <b-input v-model="form.sucursal.value" placeholder="SUCURSAL" :disabled="form.sucursal.disabled"></b-input>
+                            </b-field>
+                        </div>
+                    </div>
+
+                    <div v-if="form.option==2" class="columns is-multiline">
+                        <div class="column is-12">
+                            <b-field :class="{ 'is-danger' : form.numero_ticket.danger }" :message="form.numero_ticket.message">
+                                <b-input v-model="form.numero_ticket.value" :placeholder="form.numero_ticket.placeholder" :disabled="form.numero_ticket.disabled"></b-input>
+                            </b-field>
+                        </div>
+                        <div class="column is-12">
+                            <b-field :class="{ 'is-danger' : form.sucursal.danger }" :message="form.sucursal.message">
+                                <b-input :class="{ 'is-disabled' : form.sucursal.disabled }" v-model="form.sucursal.value" placeholder="SUCURSAL" :disabled="form.sucursal.disabled"></b-input>
+                            </b-field>
+                        </div>
+                    </div>
+
+                    <div v-if="form.option==3" class="columns is-multiline">
+                        <div class="column is-12">
+                            <b-field :class="{ 'is-danger' : form.numero_ticket.danger }" :message="form.numero_ticket.message">
+                                <b-input v-model="form.numero_ticket.value" :placeholder="form.numero_ticket.placeholder" :disabled="form.numero_ticket.disabled"></b-input>
+                            </b-field>
+                        </div>
+                        <div class="column is-12">
+                            <b-field :class="{ 'is-danger' : form.sucursal.danger }" :message="form.sucursal.message">
+                                <b-input :class="{ 'is-disabled' : form.sucursal.disabled }" v-model="form.sucursal.value" placeholder="SUCURSAL" :disabled="form.sucursal.disabled"></b-input>
+                            </b-field>
+                        </div>
+                    </div>
+
+                    <div v-if="form.option!=null" class="columns is-multiline">
+                        <div class="column is-6 has-text-centered">
+                            <b-button class="general" tag="input" v-on:click="state_2" value="CONTINUAR" expanded></b-button>
+                        </div>
+                        <div class="column is-6 has-text-centered">
+                            <b-button class="general back" tag="input" v-on:click="option(null)" value="REGRESAR" expanded></b-button>
+                        </div>
+                    </div>
+                    <!-- <b-button class="general" tag="input" v-on:click="state_1" value="CONTINUAR"></b-button> -->
+                </div>
+                <!-- End: State 2 -->
+
+                <!-- State 3 -->
+                <div v-if="state == 3" class="column is-12 has-text-centered">
+                    <div style="padding:56.25% 0 0 0;position:relative;"><iframe src="https://player.vimeo.com/video/634909612?h=d4d55b641e&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479&autoplay=1&loop=1" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%;" title="Somos Lucha Round 3.MOV"></iframe></div>
+                    <p class="mt-3 has-text-white is-size-3">Ve el video e ingresa el número de electrolit para registrar tu respuesta</p>
+                    <b-field class="mt-3">
+                        <b-numberinput v-model="form.respuesta.value" type="is-warning"></b-numberinput>
+                    </b-field>
+                    <b-button class="general" tag="input" v-on:click="state_3" value="REGISTRAR PARTICIPACIÓN" expanded></b-button>
+                </div>
+                <!-- End: State 3 -->
+
+                <!-- State 5 -->
+                <div v-if="state == 5" class="column is-12 has-text-centered">
+                    <h1 class="title is-corogoose-bold my-4 titles-shadow has-text-white">¡GRACIAS POR PARTICIPAR!<br>TU RESPUESTA HA SIDO REGISTRADA</h1>
+                    <p class="mt-3 has-text-white is-size-3">El sorteo se llevará acabo el día tal del mes tal del año tal en tal lugar.</a></p>
+                    <p class="mt-3 has-text-warning is-size-3 ">¡Mucha suerte!</a></p>
+                </div>
+                <!-- End: State 5 -->
+
+                <div class="column is-12 has-text-centered">
+                    <p class="my-4">Promoción valida en toda la república mexicana, exlusivo de Farmacias Guadalajara</p>
+                    <p class="my-4 has-text-weight-bold">© Farmacias Guadalajara. © Electrolit. 2021.</p>
+                    <p class="my-4 has-text-weight-bold"><a class="ref" target="_blank" href="/terminos-condiciones.html">Términos y condiciones del concurso</a></p>
+                </div>
+            </div>
+        </div>
+
+
+        <b-modal
+            v-model="terminosCondiciones"
+            has-modal-card
+            trap-focus
+            :can-cancel="false"
+            :destroy-on-hide="false"
+            aria-role="dialog"
+            aria-label="Example Modal"
+            aria-modal>
+            <div class="card" style="max-width: 400px; display: none;" ref="modal">
+                <div class="card-content has-text-centered">
+                    <h1 class="has-text-weight-bold is-uppercase">Términos y condiciones del concurso</h1>
+                    <p class="has-text-left is-font-family-courier" style="color: black; text-shadow: none; max-height: 400px; overflow-x: hidden; overflow-y: scroll;">
+                        Lorem ipsum dolor sit amet consectetur adipisicing elit. Animi, tempore deserunt! Ipsum incidunt commodi at deserunt ut, amet sint? Sunt non ab suscipit autem fuga voluptatem, necessitatibus rem ullam vitae.
+                    Harum, expedita animi? Reprehenderit magnam eveniet cum vitae delectus iure quae voluptatibus debitis, atque odit hic nobis, odio adipisci voluptatem veniam quibusdam exercitationem sed ad? Ab est illo omnis modi?
+                    Voluptas iusto quasi recusandae minima commodi deleniti, necessitatibus praesentium illum incidunt explicabo ipsa a. Enim aliquid voluptates asperiores perferendis vel consectetur minus, non doloremque, ducimus, vitae atque nam? Autem, necessitatibus!
+                    Recusandae maxime nam provident! Nulla hic exercitationem recusandae voluptates repudiandae asperiores sequi accusantium sunt quia id odio similique nesciunt quidem iure at ipsa provident quae culpa enim, odit iste quod.
+                    Similique aliquid dignissimos repellat tempora. Nulla labore eligendi id nostrum obcaecati maxime eveniet fuga libero voluptatibus neque. Ullam dolor impedit, blanditiis amet nihil hic fugiat nam quisquam dolorum dolore? Ex!</p>
+                </div>
+                <b-button type="is-warning" v-on:click="closeModal" expanded><b>Acepto los términos y condiciones</b></b-button>
+            </div>
+        </b-modal>
+    </div>
+
+    <script src="https://unpkg.com/vue"></script>
+    <script src="https://unpkg.com/buefy/dist/buefy.min.js"></script>
+    <script src="https://player.vimeo.com/api/player.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aws-sdk/2.1010.0/aws-sdk.min.js" integrity="sha512-0Nl1TKseNnp9cV5X1K1IKageHso/mweJ6GiMiIDa1wLeCRTCFAsnBYYfle4GZ0HJ/wBgf6IWEd+VbX8Tj85lvA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                loading: false,
+                state: null,
+                terminosCondiciones: false,
+                form: {
+                    nombre_completo: {
+                        danger: false,
+                        value: '',
+                        message: ''
+                    },
+                    correo_electronico: {
+                        danger: false,
+                        value: '',
+                        message: ''
+                    },
+                    telefono: {
+                        danger: false,
+                        value: '',
+                        message: ''
+                    },
+                    ticket: {
+                        danger: false,
+                        value: '',
+                        message: ''
+                    },
+                    numero_ticket: {
+                        danger: false,
+                        value: '',
+                        message: '',
+                        disabled: false,
+                        placeholder: 'NÚMERO DE TICKET'
+                    },
+                    sucursal: {
+                        danger: false,
+                        value: '',
+                        message: '',
+                        disabled: false
+                    },
+                    respuesta: {
+                        danger: false,
+                        value: 0,
+                        message: ''
+                    },
+                    option: null
+                }
+            },
+            methods: {
+                closeModal: function() {
+                    this.terminosCondiciones = false
+                    this.$buefy.toast.open({
+                        duration: 5000,
+                        message: `Haz aceptado los términos y condiciones del concurso.`,
+                        position: 'is-bottom',
+                        type: 'is-success'
+                    })
+                    this.changeState(1)
+                },
+                state_0: function() {
+                    this.terminosCondiciones = true
+                    setTimeout(() => {
+                        this.$refs.modal.style.display = 'block'
+                    }, 100)
+                },
+                state_1: function() {
+                    var error = false
+                    const form_data = [
+                        'nombre_completo',
+                        'correo_electronico',
+                        'telefono'
+                    ]
+
+                    form_data.forEach((el) => {
+                        this.form[ el ].danger = false
+                        this.form[ el ].message = ''
+                    })
+
+                    form_data.forEach((el) => {
+                        if ( this.form[ el ].value == '' ) {
+                            this.form[ el ].danger = true
+                            this.form[ el ].message = 'Este campo no puede estar vacio.'
+                            error = true
+                        }
+                    })
+
+                    if ( error ) { return }
+
+                    this.changeState(2)
+                },
+                state_2: function() {
+                    let error = false
+                    if ( this.form.option == null ) {
+                        return
+                    }
+
+                    this.form.numero_ticket.danger = false
+                    this.form.numero_ticket.message = ''
+                    this.form.sucursal.danger = false
+                    this.form.sucursal.message = ''
+                    if ( this.form.option == 1 ) {
+                        this.form.ticket.danger = false
+                        this.form.ticket.message = ''
+                    }
+                    
+
+                    if ( this.form.numero_ticket.value == '' ) {
+                        this.form.numero_ticket.danger = true
+                        this.form.numero_ticket.message = 'ESTE CAMPO NO PUEDE ESTAR VACÍO'
+                        error = true
+                    }
+
+                    if ( this.form.sucursal.value == '' ) {
+                        this.form.sucursal.danger = true
+                        this.form.sucursal.message = 'ESTE CAMPO NO PUEDE ESTAR VACÍO'
+                        error = true
+                    }
+
+                    if ( this.form.option == 1 ) {
+                        if ( this.form.ticket.value == '' ) {
+                            this.form.ticket.danger = true
+                            this.form.ticket.message = 'SELECCIONA UNA FOTO DE SU TICKET'
+                            error = true
+                        }
+                    }
+
+                    if ( error ) {
+                        return
+                    }
+
+                    this.changeState(3)
+                },
+                state_3: function() {
+                    if ( this.form.respuesta.value <= 0 ) {
+                        this.$buefy.toast.open({
+                            duration: 5000,
+                            message: `Tu respuesta debe ser mayor a cero.`,
+                            position: 'is-bottom',
+                            type: 'is-danger'
+                        })
+                        return
+                    }
+                    this.$buefy.dialog.confirm({
+                        title: 'Confirmar participación',
+                        message: `Nombre: ${this.form.nombre_completo.value}<br>
+                        Correo electrónico: ${this.form.correo_electronico.value}<br>
+                        Teléfono: ${this.form.telefono.value}<br>
+                        Respuesta: ${this.form.respuesta.value} electrolit<br>
+                        Número de compra: ${this.form.numero_ticket.value}<br>
+                        Sucursal: ${this.form.sucursal.value}<br>
+                        Al registrar tu participación <a href="#">aceptas los términos y condiciones del concurso</a>.`,
+                        cancelText: 'No estoy de acuerdo',
+                        confirmText: 'Estoy de acuerdo',
+                        type: 'is-success',
+                        onConfirm: () => this.state_4()
+                    })
+                },
+                state_4: async function() {
+                    this.changeState(5)
+                    var formData = new FormData()
+                    
+                    const form_data = [
+                        'nombre_completo',
+                        'correo_electronico',
+                        'telefono',
+                        'ticket',
+                        'numero_ticket',
+                        'sucursal',
+                        'respuesta',
+                    ]
+
+                    if ( this.form.ticket.value != '' ) {
+                        var accessKeyId = 'FYD5AHDDMWIHXIAWNNXB'
+                        var secretAccessKey = 'GEbfZdI4YpcLc9X/CDocI78sgpNP6YCSiO/YF3COx+Q'
+                        var region = 'sfo3'  // New York region by default
+    
+                        var spacesEndpoint = new AWS.Endpoint(region + '.digitaloceanspaces.com');
+                        var s3 = new AWS.S3({
+                            endpoint: spacesEndpoint,
+                            accessKeyId: accessKeyId,
+                            secretAccessKey: secretAccessKey
+                        })
+    
+                        var params = {Bucket: 'cdn.funboxing', Key: `electrolits/${this.uuidv4()}.jpg`, Body: this.form.ticket.value, ACL: "public-read", ContentType: 'image/jpg'};
+                        const url = await s3.upload(params).promise()
+                        this.form.ticket.value = url.Location
+                        console.log(this.form.ticket.value)
+                    }
+
+                    form_data.forEach((el) => {
+                        formData.append(el, this.form[el].value)
+                    })
+
+                    fetch(
+                        'https://script.google.com/macros/s/AKfycbxdC7vbOs7Qdvanqc30asiGgPqYuSHV_3YA8AOXilG_g1R8RRxKJMdWEph0EaPk2NlCZg/exec',
+                        { method: 'POST', body: formData}
+                    )
+                    .then(response => {
+                        console.log('Success!', response)
+                    })
+                    .catch(error => {
+                        console.error('Error!', error.message)
+                    })
+
+
+                },
+                option: function(op) {
+                    this.form.option = op
+                    if ( this.form.option == 2 ) {
+                        this.form.sucursal.value = 'EN LINEA'
+                        this.form.sucursal.disabled = true
+                        this.form.numero_ticket.placeholder = 'NÚMERO DE COMPRA'
+                    }
+                    else if ( this.form.option == 3 ) {
+                        this.form.sucursal.value = 'CALL CENTER'
+                        this.form.sucursal.disabled = true
+                        this.form.numero_ticket.placeholder = 'NÚMERO DE COMPRA'
+                    }
+                    else {
+                        this.form.numero_ticket.placeholder = 'NÚMERO DE TICKET'
+                        this.form.sucursal.value = ''
+                        this.form.sucursal.disabled = false
+                    }
+                },
+                changeState: function(state) {
+                    this.loading = true
+                    this.state = null
+                    setTimeout(() => {
+                        this.loading = false
+                        this.state = state
+                    }, 2000)
+                },
+                uuidv4: function() {
+                    return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+                        (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+                    );
+                },
+                reiniciar: function() {
+                    this.state = null
+                    this.$buefy.dialog.confirm({
+                    message: 'Deseas reiniciar la encuesta?',
+                        cancelText: 'No',
+                        confirmText: 'Si',
+                        onConfirm: () => window.location.href = '/',
+                    })
+                }
+            },
+            mounted: function() {
+                this.$nextTick(() => {
+                    this.changeState(0)
+                })
+            },
+            watch: {
+                state: function(oldVal, newVal) {
+                    setTimeout(() => {
+                        this.$refs.main_container.style.display = 'block'
+                    }, 100)
+                }
+            },
+            computed: {
+                isMobile: function() {
+                    return window.innerWidth <= 600
+                }
+            }
+        })
+    </script>
+</body>
+</html>
